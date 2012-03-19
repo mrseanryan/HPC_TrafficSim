@@ -1,0 +1,45 @@
+#using glob syntax.
+syntax: glob
+
+#CVS files:
+CVS
+Entries
+Entries.Extra
+Entries.Extra.Old
+Entries.Old
+Repository
+Root
+
+#ignore files for Visual Studio
+*.pdb
+*.pch
+*.ncb
+*.obj
+*.bsc
+*.ilk
+*.il
+*.tli
+*.tlh
+*.idb
+*.sbr
+*.suo
+*.vshost.exe
+*.csproj.user
+*.csproj.FileListAbsolute.txt
+
+#python:
+*.pyc
+
+#Windows Explorer:
+Thumbs.db
+
+#general temp files:
+*.bak
+old
+temp
+
+#Sphinx (custom):
+old_build
+
+#other:
+test_data\xml_parsing\xml\note.xsx 
