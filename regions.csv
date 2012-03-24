@@ -1,0 +1,10 @@
+#all the regions that need to be processed
+#
+#the regions will be divided up dynamically, as processors are added or removed from the distributed system
+#
+#regionName,lattitude,longitude,capacity
+Dublin, 53°20'N, 6°15'W,300000
+Galway,53°17'N,09°03'W,70000
+Cork, 51°47'N, 08°16'W,100000
+Belfast,  54°37'N, 5°56'W,50000
+

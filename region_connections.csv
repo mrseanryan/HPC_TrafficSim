@@ -1,0 +1,10 @@
+#the connections between the regions
+#
+#traffic will be sent between the connected regions, in both directions.
+#
+#regionName,neighbour
+Dublin, Galway
+Galway,Cork
+Cork, Dublin
+Belfast,  Dublin
+
