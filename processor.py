@@ -2,10 +2,32 @@
 
 import Pyro.core
 
+from threading import Thread
+from time import sleep
+
+class ThreadedProcessor(Thread):
+	def __init__ (self,proc):
+		Thread.__init__(self)
+		self.proc = proc
+		self.IsRunning = True
+
+	def __del__(self):
+		self.stop()
+
+	#threaded method
+	def run(self):
+		while(self.IsRunning):
+			print "simulating traffic..."
+			sleep(1.0)
+
+	def stop(self):
+		self.IsRunning = False
+
 class Processor(Pyro.core.ObjBase):
 	def __init__(self):
 		Pyro.core.ObjBase.__init__(self)
 		self._register()
+		self.threaded = None
 
 	def __del__(self):
 		self.unregister()
@@ -28,12 +50,17 @@ class Processor(Pyro.core.ObjBase):
 		print self.model.toString()
 
 	def unregister(self):
+		self.threaded.IsRunning = False
 		self.broker.unregister(self.myPID)
 
 def main():
 	proc = Processor()	
 
-	#todo start a new thread, to perform the traffic algorithm
+	#start a new thread, to perform the traffic algorithm
+	threaded = ThreadedProcessor(proc)
+	threaded.start()
+
+	proc.threaded = threaded
 
 	#register this proc, so that other procs can reach it:
 	Pyro.core.initServer()
@@ -44,9 +71,12 @@ def main():
 	uri=daemon.connect(proc,"proc" + str(proc.myPID))
 
 	#server thread, that processes requests:
-	print "processing " + str(proc.myPID) + " is listening ..."
-	daemon.requestLoop()
-
+	try:
+		print "processing " + str(proc.myPID) + " is listening ..."
+		daemon.requestLoop()
+	except:
+		threaded.stop()
+		pass
 
 if __name__=="__main__":
     main()
