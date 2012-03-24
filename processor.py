@@ -7,19 +7,28 @@ class Processor(Pyro.core.ObjBase):
 		Pyro.core.ObjBase.__init__(self)
 		self._register()
 
+	def __del__(self):
+		self.unregister()
+
 	def _register(self):
 		#use the pyro nameserver to locate the broker
 		self.broker = Pyro.core.getProxyForURI("PYRONAME://broker")
 
-		self.myPID = self.broker.register()
+		#registerResult = self.broker.register()
+		(self.myPID, self.otherPIDs) = self.broker.register()
 		print "my PID = " + str(self.myPID)
+		print "other active PIDs: "
+		for otherPID in self.otherPIDs:
+			print str(otherPID) + ", "
 
 	 	self.model = self.broker.getModel()
-		#todo copy the model locally
+		#todo copy the model locally, for performance
 
 		print "retrieved model from broker: "
 		print self.model.toString()
 
+	def unregister(self):
+		self.broker.unregister(self.myPID)
 
 def main():
 	proc = Processor()	
@@ -33,8 +42,11 @@ def main():
 	daemon.useNameServer(ns)
 	#now register with the nameserver, so that newer processors can find me
 	uri=daemon.connect(proc,"proc" + str(proc.myPID))
+
 	#server thread, that processes requests:
+	print "processing " + str(proc.myPID) + " is listening ..."
 	daemon.requestLoop()
+
 
 if __name__=="__main__":
     main()
