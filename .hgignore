@@ -43,3 +43,5 @@ old_build
 
 #other:
 test_data\xml_parsing\xml\note.xsx 
+Pyro_NS_URI
+show_pyro_config.sh~
