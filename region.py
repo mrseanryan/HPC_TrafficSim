@@ -80,11 +80,14 @@ class RegionModel:
 			print strMessage				
 
 def main():
-	#this is test code!
+	print "__________________________________________________________________"
+	print "running unit test for Region class ..."
 	regions = Region.Load("regions.csv")
 	for region in regions:
 		print region.toString()
 
+	print "__________________________________________________________________"
+	print "running unit test for RegionModel class ..."
 	model = RegionModel.Load("regions.csv", "region_connections.csv")
 	print model.toString()
 
