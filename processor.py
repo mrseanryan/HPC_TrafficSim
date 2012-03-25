@@ -5,6 +5,8 @@ import Pyro.core
 from threading import Thread
 from time import sleep
 
+from TrafficSimulator import *
+
 CONST_STATE_STARTING = 1
 CONST_STATE_RUNNING = 2
 CONST_STATE_EXITING = 3
@@ -14,6 +16,7 @@ class ThreadedProcessor(Thread):
         Thread.__init__(self)
         self.proc = proc
         self.IsRunning = True
+        self.sim = TrafficSimulator(proc)
 
     def __del__(self):
         self.Stop()
@@ -27,28 +30,8 @@ class ThreadedProcessor(Thread):
         iStep = 0
         CONST_MONITOR_UPDATE_EVERY_STEP = 5
         while(self.IsRunning and self.proc.state == CONST_STATE_RUNNING):
-            self._simulateAstep()
-            iStep = iStep + 1
-            if iStep == CONST_MONITOR_UPDATE_EVERY_STEP:
-                iStep = 0
-                self._updateMonitor()
-
-    def _sendTraffic(self):
-        #xxx TODO
-        print "sending traffic ..."
-
-    def _simulateAstep(self):
-        print "traffic sim running ..."
-        self._sendTraffic()
-        sleep(1.0)
-
-    def _updateMonitor(self):
-        print "updating the monitor ..."
-        self.proc.UpdateMonitor()
-
-    def TryToReceiveTraffic(self, numVehicles):
-        #xxx TODO
-        return False
+            self.sim.SimulateAstep()
+            sleep(0.25)
 
     def Stop(self):
         self.IsRunning = False

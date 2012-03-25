@@ -10,7 +10,13 @@ behaves as a distinct cell within the overall road network.
 Dependencies:
 =============
 - Python 2.7.x
-- zeromq:		http://www.zeromq.org
 - Python easy install
+- pyro:  easy_install pyro
+
+Unused dependencies:
+====================
+zeromq (not used in the end):
+- zeromq:		http://www.zeromq.org
 - Python zeromq:  easy_install pyzmq
 - git (for the zeromq samples) - http://code.google.com/p/msysgit/downloads/list?can=3&q=official+Git
+
