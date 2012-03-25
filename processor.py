@@ -51,7 +51,8 @@ class Processor(Pyro.core.ObjBase):
         self.Unregister()
 
     def _calculateTargetRegionsPerProc(self):
-        numRegionsPerProc = len(self.model.regions) / (1 + len(self.otherPIDs))
+        regions = self.model.GetRegions()
+        numRegionsPerProc = len(regions) / (1 + len(self.otherPIDs))
         return numRegionsPerProc
 
     def _getOtherProc(self, otherPID):
@@ -112,7 +113,10 @@ class Processor(Pyro.core.ObjBase):
         for otherPID in self.otherPIDs:
             print str(otherPID) + ", "
 
-        self.model = self.broker.getModel()
+        #self.model = self.broker.model
+        #self.model = self.broker.getModel() #this seems to copy by value ?!?
+        self.model = Pyro.core.getProxyForURI("PYRONAME://model")
+
         #TODO copy the model locally, for performance - but could introduce data sync issues
 
         print "retrieved model from broker: "
@@ -161,7 +165,7 @@ class Processor(Pyro.core.ObjBase):
         #assumption: only one processor joining or leaving at a time!
         if len(self.otherPIDs) == 0:
             #this is the first processor, so just take all the regions
-            for region in self.model.regions:
+            for region in self.model.GetRegions():
                 self.myRegions.append(region)
  
         for otherPID in self.otherPIDs:
@@ -191,7 +195,9 @@ class Processor(Pyro.core.ObjBase):
 
     def UpdateMonitor(self):
         #todo make this more efficient - by just a partial update by region
-        self.monitor.UpdateTraffic(self.model)
+        self.monitor.UpdateTrafficModel()
+        #xxx 
+        print self.model.toString()
 
     def _updateMonitorRegions(self):
         self.monitor.Update(self.myPID, self.myRegions)
@@ -233,13 +239,13 @@ def main():
         print "Go to running state"
 
         proc.Run()
-
+    #try: #xxx
         print "processing " + str(proc.myPID) + " is listening ..."
         daemon.requestLoop()
     except:
         threaded.Stop()
         proc.Unregister()
-        pass
+        raise
 
 if __name__=="__main__":
     main()

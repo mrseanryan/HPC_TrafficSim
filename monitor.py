@@ -21,36 +21,43 @@ class Monitor(Pyro.core.ObjBase):
         
         self._updateDisplay()
 
-    def UpdateTraffic(self, model):
+    def UpdateTrafficModel(self):
         self._updateDisplay()
 
     def _updateDisplay(self):
         #TODO make a web server
         #maybe use HTML5 to draw ?  or else Google maps...
         print "________________________"
-        #build a reverse lookup, so we can print by regions:
-        dictRegionToPID = dict()
-        for PID in self.dictPIDtoRegions.iterkeys():
-            regions = self.dictPIDtoRegions[PID]            
-            for region in regions:
-                dictRegionToPID[region] = PID
 
-        for region in dictRegionToPID.iterkeys():
-            print region.regionName + " - proc" + str(dictRegionToPID[region])
+        #show which processor owns what regions:
+        for PID in self.dictPIDtoRegions:
+            strMessage = "proc" + str(PID) + " processing regions: "
+            for region in self.dictPIDtoRegions[PID]:
+                strMessage = strMessage + region.regionName + ", "
+            print strMessage
 
+        #show model state: (traffic details)
+        print self.model.toString()
 
 def main():
     mon = Monitor()    
 
     #NOT threading the monitor - simpler + more efficient to just have processors push their updates
 
-    Pyro.core.initServer()
-    ns=Pyro.naming.NameServerLocator().getNS()
-    daemon=Pyro.core.Daemon()
-    daemon.useNameServer(ns)
-    uri=daemon.connect(mon,"monitor")
-    print "monitor is listening..."
-    daemon.requestLoop()
+    try:
+        Pyro.core.initServer()
+        ns=Pyro.naming.NameServerLocator().getNS()
+        daemon=Pyro.core.Daemon()
+        daemon.useNameServer(ns)
+        uri=daemon.connect(mon,"monitor")
+
+        mon.model = Pyro.core.getProxyForURI("PYRONAME://model")
+
+        print "monitor is listening..."
+        daemon.requestLoop()
+    except:
+        daemon.disconnect(mon)    
+        pass
 
 if __name__=="__main__":
     main()
