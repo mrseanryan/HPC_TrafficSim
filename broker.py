@@ -14,9 +14,11 @@ class Broker(Pyro.core.ObjBase):
 	def register(self): #returns new PID for the client, otherPIDs
 		newPID = self.getNextPID()
 		print "registering new PID " + str(newPID)
+		otherPIDs = []
+		for PID in self.activePIDs:
+			otherPIDs.append(PID)
 		self.activePIDs.append(newPID)
-		return (newPID, self.activePIDs)
-		#return newPID	
+		return (newPID, otherPIDs)
 	def getModel(self):
 		return self.model
 	def getNextPID(self):
