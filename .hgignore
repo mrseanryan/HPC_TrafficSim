@@ -45,3 +45,4 @@ old_build
 test_data\xml_parsing\xml\note.xsx 
 Pyro_NS_URI
 show_pyro_config.sh~
+Pyro_log
