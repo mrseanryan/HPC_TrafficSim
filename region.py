@@ -76,7 +76,7 @@ class Region(Pyro.core.ObjBase):
         return regionStr
 
     def _getPercentFullStr(self):
-        return str(float(self.numVehicles) / float(self.capacity))
+        return str(100.0 * float(self.numVehicles) / float(self.capacity))
 
 class RegionModel(Pyro.core.ObjBase):
     def __init__(self):

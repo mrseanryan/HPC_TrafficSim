@@ -18,12 +18,16 @@ note: pyro 3.11 seems to behave better between Windows (7 Home Premium) <- Ubunt
   ubuntu: 1 x processor
   note: start the ubuntu processor last!
 
-  note: did NOT work with Win<-Ubuntu 11
+  note: did NOT work with Win<-Ubuntu 11 (error in processor.py)
+        also NOT work with Ubuntu10.10 <- Win / Ubuntu 11 (ns not found)
+                           (maybe cos Win 7 is the host OS ?)
 
 env vars:
-    export PYRO_LOGLEVEL=DEBUG
-    export PYRO_TRACELEVEL=3
-    
+    enable logging:
+        export PYRO_LOGLEVEL=DEBUG
+        export PYRO_TRACELEVEL=3
+    optional:
+        PYRO_NS_HOSTNAME    
 
 Unused dependencies:
 ====================
