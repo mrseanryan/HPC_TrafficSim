@@ -13,10 +13,12 @@ Dependencies:
 - Python easy install
 - pyro:  easy_install pyro
 
-note: pyro 3.11 seems to behave better between Ubuntu (10) <> Windows (7)
+note: pyro 3.11 seems to behave better between Windows (7 Home Premium) <- Ubuntu (10.10)
   windows: pyro-ns + broker + monitor  (processor error!)
   ubuntu: 1 x processor
   note: start the ubuntu processor last!
+
+  note: did NOT work with Win<-Ubuntu 11
 
 env vars:
     export PYRO_LOGLEVEL=DEBUG
