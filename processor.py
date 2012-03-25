@@ -168,7 +168,8 @@ class Processor(Pyro.core.ObjBase):
             otherProc = self._getOtherProc(otherPID)
             (myNewRegions, otherPIDregions) = otherProc.GiveWork(targetNumRegionsPerProc)
             #update this procs regions:
-            self.myRegions = myNewRegions
+            for region in myNewRegions:
+                self.myRegions.append(region)
             #update our map of other procs regions: (so we know where to send traffic for region X)
             self.Update(otherPID, otherPIDregions)
         #finally, tell all the other procs what regions we have taken:
