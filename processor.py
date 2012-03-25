@@ -16,7 +16,7 @@ class ThreadedProcessor(Thread):
         self.IsRunning = True
 
     def __del__(self):
-        self.stop()
+        self.Stop()
 
     #threaded method
     def run(self):
@@ -50,7 +50,7 @@ class ThreadedProcessor(Thread):
         #xxx TODO
         return False
 
-    def stop(self):
+    def Stop(self):
         self.IsRunning = False
 
 class Processor(Pyro.core.ObjBase):
@@ -64,7 +64,8 @@ class Processor(Pyro.core.ObjBase):
         self.dictRegiontoPID = dict()
 
     def __del__(self):
-        self.unregister()
+        self.state = CONST_STATE_EXITING
+        self.Unregister()
 
     def _calculateTargetRegionsPerProc(self):
         numRegionsPerProc = len(self.model.regions) / (1 + len(self.otherPIDs))
@@ -80,7 +81,39 @@ class Processor(Pyro.core.ObjBase):
     #give all our regions to the other processors, so they can work on them (as we are exiting)
     def _giveRegionsToOtherProcessors(self):
         print "giving regions to other processors..."
-        #xxx TODO
+
+        if len(self.otherPIDs) > 0:
+            regionsToGiveEachProc = len(self.myRegions) / (len(self.otherPIDs))
+            print "regionsToGiveEachProc = " + str(regionsToGiveEachProc)
+
+            for otherPID in self.otherPIDs:
+                otherProc = self._getOtherProc(otherPID)
+                regionsToGive = []
+                while len(regionsToGive) < regionsToGiveEachProc:
+                    region = self.myRegions[0]
+                    regionsToGive.append(region)
+                    self.myRegions.remove(region)
+                otherProc.TakeRegions(regionsToGive, self.myPID)
+            
+            #give any remainder regions to one other processor:
+            regionsToGive = []
+            while len(self.myRegions) > 0:
+                region = self.myRegions[0]
+                regionsToGive.append(region)
+                self.myRegions.remove(region)
+            otherProc.TakeRegions(regionsToGive, self.myPID)
+
+            if len(self.myRegions) > 0:
+                raise Exception("some regions were not given!")
+
+        #make sure our region list is empty, before we broadcast updates:
+        self.myRegions = []
+
+        #tell other processors that we have no regions:
+        self._updateOtherProcessors()
+
+        #tell the monitor we are not processing any regions:
+        self._updateMonitorRegions()
 
     def _register(self):
         #use the pyro nameserver to locate the broker
@@ -117,12 +150,25 @@ class Processor(Pyro.core.ObjBase):
         for region in regionsGiven:
             self.myRegions.remove(region)
         #tell the monitor:
-        self.monitor.Update(self.myPID, self.myRegions)
+        self._updateMonitorRegions()
         #return regions we are giving to the calling processor + list of this processors regions (to avoid a further call)
         return (regionsGiven, self.myRegions)
 
     def Run(self):
         self.state = CONST_STATE_RUNNING
+
+    #take the given regions
+    def TakeRegions(self, regionsToGive, PIDgiver):
+        for region in regionsToGive:
+            self.myRegions.append(region)
+        #tell the other processors, except our caller:
+        for otherPID in self.otherPIDs:
+            if otherPID != PIDgiver:
+                otherProc = self._getOtherProc(otherPID)
+                otherProc.Update(self.myPID, self.myRegions)
+
+        #tell the monitor:
+        self._updateMonitorRegions()
 
     #take work from existing processors.
     def TakeWorkFromOtherProcessors(self):
@@ -143,23 +189,37 @@ class Processor(Pyro.core.ObjBase):
             #update our map of other procs regions: (so we know where to send traffic for region X)
             self.Update(otherPID, otherPIDregions)
         #finally, tell all the other procs what regions we have taken:
-        for otherPID in self.otherPIDs:
-            otherProc = self._getOtherProc(otherPID)
-            otherProc.Update(self.myPID, self.myRegions)
+        self._updateOtherProcessors()
         #tell the monitor:
-        self.monitor.Update(self.myPID, self.myRegions)
+        self._updateMonitorRegions()
 
     #update our map of PID => Regions (so we know where to send traffic for region X)
     def Update(self, otherPID, otherPIDregions):
         for region in otherPIDregions:
             self.dictRegiontoPID[otherPID] = region
+        if len(otherPIDregions) == 0:
+            #other PID is exiting:
+            if otherPID in self.otherPIDs:
+                self.otherPIDs.remove(otherPID)            
+        else:
+            if otherPID not in self.otherPIDs:
+                self.otherPIDs.append(otherPID)
 
     def UpdateMonitor(self):
         #todo make this more efficient - by just a partial update by region
         self.monitor.UpdateTraffic(self.model)
 
-    def unregister(self):
-        self.threaded.stop()
+    def _updateMonitorRegions(self):
+        self.monitor.Update(self.myPID, self.myRegions)
+
+    #tell other processors, what regions we are processing:
+    def _updateOtherProcessors(self):
+        for otherPID in self.otherPIDs:
+            otherProc = self._getOtherProc(otherPID)
+            otherProc.Update(self.myPID, self.myRegions)
+
+    def Unregister(self):
+        self.threaded.Stop()
         self.dictPIDtoProxy = dict() #clear refs to other processors
         self.broker.unregister(self.myPID)
         self._giveRegionsToOtherProcessors()
@@ -193,8 +253,8 @@ def main():
         print "processing " + str(proc.myPID) + " is listening ..."
         daemon.requestLoop()
     except:
-        threaded.stop()
-        proc.unregister()
+        threaded.Stop()
+        proc.Unregister()
         pass
 
 if __name__=="__main__":

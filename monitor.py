@@ -6,6 +6,8 @@ import Pyro.naming
 class Monitor(Pyro.core.ObjBase):
     def __init__(self):
         Pyro.core.ObjBase.__init__(self)
+
+        #todo - make this be dictRegionToPID
         self.dictPIDtoRegions = dict()
 
     def Update(self, PID, myRegions):
