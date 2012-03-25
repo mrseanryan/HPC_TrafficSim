@@ -13,6 +13,16 @@ Dependencies:
 - Python easy install
 - pyro:  easy_install pyro
 
+note: pyro 3.11 seems to behave better between Ubuntu (10) <> Windows (7)
+  windows: pyro-ns + broker + monitor  (processor error!)
+  ubuntu: 1 x processor
+  note: start the ubuntu processor last!
+
+env vars:
+    export PYRO_LOGLEVEL=DEBUG
+    export PYRO_TRACELEVEL=3
+    
+
 Unused dependencies:
 ====================
 zeromq (not used in the end):
